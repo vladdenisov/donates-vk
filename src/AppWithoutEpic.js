@@ -1,11 +1,11 @@
 import React from 'react';
-import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux'
-import {goBack, closeModal} from "./js/store/router/actions";
-import {getActivePanel} from "./js/services/_functions";
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux'
+import { goBack, closeModal } from "./js/store/router/actions";
+import { getActivePanel } from "./js/services/_functions";
 import * as VK from './js/services/VK';
 
-import {View, Root, ModalRoot, ConfigProvider} from "@vkontakte/vkui";
+import { View, Root, ModalRoot, ConfigProvider } from "@vkontakte/vkui";
 
 import HomePanelProfile from './js/panels/home/base';
 import HomePanelGroups from './js/panels/home/groups';
@@ -13,17 +13,23 @@ import HomePanelGroups from './js/panels/home/groups';
 import HomeBotsListModal from './js/components/modals/HomeBotsListModal';
 import HomeBotInfoModal from './js/components/modals/HomeBotInfoModal';
 
-import MorePanelExample from './js/panels/more/example';
 
+import CreateDonatePanelBase from './js/panels/create-donate/base'
+import CreateDonateType from './js/panels/create-donate/select-type'
+import CreateDonateData from './js/panels/create-donate/enter-data'
+import CreateDonateMoreData from './js/panels/create-donate/more-data'
+
+import SnippetBase from './js/panels/snippet/base'
 class App extends React.Component {
     constructor(props) {
         super(props);
-
+        this.changeData = this.changeData.bind(this);
+        this.state = { data: {} }
         this.lastAndroidBackAction = 0;
     }
 
     componentWillMount() {
-        const {goBack, dispatch} = this.props;
+        const { goBack, dispatch } = this.props;
 
         dispatch(VK.initApp());
 
@@ -41,7 +47,7 @@ class App extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
-        const {activeView, activeStory, activePanel, scrollPosition} = this.props;
+        const { activeView, activeStory, activePanel, scrollPosition } = this.props;
 
         if (
             prevProps.activeView !== activeView ||
@@ -53,9 +59,11 @@ class App extends React.Component {
             window.scroll(0, pageScrollPosition);
         }
     }
-
+    changeData(e, data) {
+        this.setState({ ...this.state, data: data })
+    }
     render() {
-        const {goBack, closeModal, popouts, activeView, activeModals, panelsHistory, colorScheme} = this.props;
+        const { goBack, closeModal, popouts, activeView, activeModals, panelsHistory, colorScheme } = this.props;
 
         let history = (panelsHistory[activeView] === undefined) ? [activeView] : panelsHistory[activeView];
         let popout = (popouts[activeView] === undefined) ? null : popouts[activeView];
@@ -84,8 +92,8 @@ class App extends React.Component {
                         history={history}
                         onSwipeBack={() => goBack()}
                     >
-                        <HomePanelProfile id="base" withoutEpic={true}/>
-                        <HomePanelGroups id="groups"/>
+                        <HomePanelProfile id="base" withoutEpic={true} />
+                        <HomePanelGroups id="groups" />
                     </View>
                     <View
                         id="modal"
@@ -94,8 +102,27 @@ class App extends React.Component {
                         history={history}
                         onSwipeBack={() => goBack()}
                     >
-                        <MorePanelExample id="filters"/>
                     </View>
+                    <View id="create-donate"
+                        onSwipeBack={() => goBack()}
+                        onBackClick={() => goBack()}
+                        activePanel={getActivePanel("base")}
+                        history={history}
+                    >
+                        <CreateDonatePanelBase id="base" onBackClick={() => goBack()} setState={this.changeData} data={this.state.data} />
+                        <CreateDonateType id="type" onBackClick={() => goBack()} setState={this.changeData} data={this.state.data} />
+                        <CreateDonateData id="data" onBackClick={() => goBack()} setState={this.changeData} data={this.state.data} />
+                        <CreateDonateMoreData id="more" onBackClick={() => goBack()} setState={this.changeData} data={this.state.data} />
+                    </View>
+                    <View id="snippet"
+                        onSwipeBack={() => goBack()}
+                        onBackClick={() => goBack()}
+                        activePanel={getActivePanel("base")}
+                        history={history}
+                    >
+                        <SnippetBase id="base" onBackClick={() => goBack()} setState={this.changeData} data={this.state.data} />
+                    </View>
+
                 </Root>
             </ConfigProvider>
         );
@@ -119,7 +146,7 @@ const mapStateToProps = (state) => {
 function mapDispatchToProps(dispatch) {
     return {
         dispatch,
-        ...bindActionCreators({goBack, closeModal}, dispatch)
+        ...bindActionCreators({ goBack, closeModal }, dispatch)
     }
 }
 
